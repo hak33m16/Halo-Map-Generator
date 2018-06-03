@@ -7,7 +7,12 @@
 #include <string>
 #include <vector>
 #include <iostream>
- 
+#include <map> 
+
+//std::map<int, std::string> OBJECT_TYPE_MAP {
+//	{  }
+//};
+
 class BudgetEntry {
 public:
 	BudgetEntry();
@@ -21,6 +26,8 @@ public:
 	sf::Uint8 designTimeMax;
 
 	float cost;
+
+	void print();
 
 };
 
@@ -44,8 +51,11 @@ public:
 	sf::Uint16 engineFlags;
 	
 	/* Signed or unsigned bytes? Is that a thing? */
+
+	// Unknown?
 	sf::Uint8 flags;
 	sf::Uint8 team;
+	// This is the material from: materials.xml
 	sf::Uint8 extra;
 	sf::Uint8 respawnTime;
 	sf::Uint8 objectType;
@@ -108,8 +118,8 @@ public:
 	// Serialize helpers.
 	void SerializeBudgetEntry(std::ofstream&, BudgetEntry);
 	void SerializeVector3f(std::ofstream&, sf::Vector3f);
-	void SerializePlacement(std::ofstream&, SandboxPlacement);
-	void SerializeSandboxMap(std::ofstream&, SandboxMap);
+	void SerializePlacement(std::ofstream&, SandboxPlacement&);
+	void SerializeSandboxMap(std::ofstream&, SandboxMap&);
 	void SerializeContentHeader(std::ofstream&, SandboxContentHeader);
 
 	// General helpers.

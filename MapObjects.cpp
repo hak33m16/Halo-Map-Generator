@@ -1,8 +1,20 @@
 #include "MapObjects.hpp"
 
 #include <fstream>
+#include <limits>
 
 BudgetEntry::BudgetEntry() {
+
+}
+
+void BudgetEntry::print() {
+
+	std::cout << "Tag Index: " << tagIndex << "\n";
+	std::cout << "Count on Map: " << (int)countOnMap << "\n";
+	std::cout << "Cost: " << cost << "\n";
+	std::cout << "Runtime Min: " << (int)runtimeMin << "\n";
+	std::cout << "Runtime Max: " << (int)runtimeMax << "\n";
+	std::cout << "Design Time Max: " << (int)designTimeMax << "\n";
 
 }
 
@@ -124,9 +136,13 @@ void UserMap::DeserializeSandboxMap(std::ifstream &mapStream) {
 		sandboxMap.placements.push_back( placement );
 		
 		//if (placement.objectType != 12 && placement.budgetIndex > -1) {
-		//	placement.print();
-		//	std::cout << "\n";
-		//}
+		//if ( !(placement.position.x == 0 && placement.position.y == 0 && placement.position.z == 0) ) {
+		//if ( placement.budgetIndex == 4 ) {
+		//if ( placement.engineFlags == 89 || placement.extra == 89 || placement.placementFlags == 89 ) {
+		if ( placement.budgetIndex == 4 && placement.engineFlags != 0 ) {
+			placement.print();
+			std::cout << "\n";
+		}
 	}
 
 	mapStream.seekg(0xD498);
@@ -134,11 +150,11 @@ void UserMap::DeserializeSandboxMap(std::ifstream &mapStream) {
 		BudgetEntry entry;
 		DeserializeBudgetEntry(mapStream, entry);
 		sandboxMap.budget.push_back( entry );
-
-		std::cout << "Tag Index: " << entry.tagIndex << "\n";
-		std::cout << "Count on Map: " << (int)entry.countOnMap << "\n";
-		std::cout << "Cost: " << entry.cost << "\n";
-		std::cout << "\n";
+		
+		if ( entry.tagIndex != std::numeric_limits<sf::Uint32>::max() ) {
+			entry.print();
+			std::cout << "\n";
+		}
 	}
 
 }
@@ -197,21 +213,75 @@ void UserMap::DeserializePlacement(std::ifstream &mapStream, SandboxPlacement &p
 // Begin serialize helpers.
 
 void UserMap::SerializeContentHeader(std::ofstream &mapStream, SandboxContentHeader contentHeader) {
-
+	// Support for this will be tricky.
 }
 
-void UserMap::SerializeSandboxMap(std::ofstream &mapStream, SandboxMap sandboxMap) {
+void UserMap::SerializeSandboxMap(std::ofstream &mapStream, SandboxMap &sandboxMap) {
+
+	mapStream.seekp(0x288);
+
+	mapStream.write( (char*)&sandboxMap.mapID, 4 );
+
+	mapStream.seekp(0x242);
+
+	mapStream.write( (char*)&sandboxMap.sceneryObjectCount, 2 );
+	mapStream.write( (char*)&sandboxMap.totalObjectCount, 2 );
+	mapStream.write( (char*)&sandboxMap.budgetEntryCount, 2 );
+
+	mapStream.seekp(0x278);
+	for ( auto &e : sandboxMap.placements ) {
+		SerializePlacement(mapStream, e);
+	}
+
+	mapStream.seekp(0xD498);
+	for ( auto &e : sandboxMap.budget ) {
+		SerializeBudgetEntry(mapStream, e);
+	}
 
 }
 
 void UserMap::SerializeVector3f(std::ofstream &mapStream, sf::Vector3f vector) {
 
+	mapStream.write( (char*)&vector.x, 4 );
+	mapStream.write( (char*)&vector.y, 4 );
+	mapStream.write( (char*)&vector.z, 4 );
+
 }
 
 void UserMap::SerializeBudgetEntry(std::ofstream &mapStream, BudgetEntry budgetEntry) {
 
+	mapStream.write( (char*)&budgetEntry.tagIndex, 4 );
+	mapStream.write( (char*)&budgetEntry.runtimeMin, 1 );
+	mapStream.write( (char*)&budgetEntry.runtimeMax, 1 );
+	mapStream.write( (char*)&budgetEntry.countOnMap, 1 );
+	mapStream.write( (char*)&budgetEntry.cost, 4 );
+
 }
 
-void UserMap::SerializePlacement(std::ofstream &mapStream, SandboxPlacement placement) {
+void UserMap::SerializePlacement(std::ofstream &mapStream, SandboxPlacement &placement) {
+
+	mapStream.write( (char*)&placement.placementFlags, 2 );
+	mapStream.write( (char*)&placement.unknown_1, 2 );
+	mapStream.write( (char*)&placement.objectDatumHandle, 4 );
+	mapStream.write( (char*)&placement.gizmoDatumHandle, 4 );
+	mapStream.write( (char*)&placement.budgetIndex, 4 );
+
+	SerializeVector3f(mapStream, placement.position);
+	SerializeVector3f(mapStream, placement.rightVector);
+	SerializeVector3f(mapStream, placement.upVector);
+
+	mapStream.write( (char*)&placement.unknown_2, 4 );
+	mapStream.write( (char*)&placement.unknown_3, 4 );
+	mapStream.write( (char*)&placement.engineFlags, 2 );
+	mapStream.write( (char*)&placement.flags, 1 );
+	mapStream.write( (char*)&placement.team, 1 );
+	mapStream.write( (char*)&placement.extra, 1 );
+	mapStream.write( (char*)&placement.respawnTime, 1 );
+	mapStream.write( (char*)&placement.objectType, 1 );
+	mapStream.write( (char*)&placement.zoneShape, 1 );
+	mapStream.write( (char*)&placement.zoneRadiusWidth, 4 );
+	mapStream.write( (char*)&placement.zoneDepth, 4 );
+	mapStream.write( (char*)&placement.zoneTop, 4 );
+	mapStream.write( (char*)&placement.zoneBottom, 4 );
 
 }
