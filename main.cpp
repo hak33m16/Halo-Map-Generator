@@ -9,8 +9,8 @@
 int main() {
 
 	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
-	std::string mapPath = "C:/Program Files (x86)/Halo Online/mods/maps/Test_45Orient/sandbox.map";
-	std::ifstream mapStream(mapPath, std::ios::in | std::ios::binary);
+	std::string mapPath = "C:/Program Files (x86)/Halo Online/mods/maps/TEST_2VERTICAL/sandbox.map";
+	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
 	map.DeserializeContentHeader(mapStream);
@@ -18,18 +18,30 @@ int main() {
 
 	mapStream.close();
 
-	//for ( auto &e : map.sandboxMap.placements ) {
+	// Should be moving the object by 2 (decent width for players)
+	for ( auto &e : map.sandboxMap.placements ) {
 		// We found the textured 0.1' x 10' x 5' wall
-	//	if ( e.extra == 89 ) {
-	//		e.position.y += 10;
-	//	}
-	//}
+		if ( e.budgetIndex == 4 && e.engineFlags != 0 ) {
+			e.position.y -= 1;
+			break;
+		}
+	}
 
-	std::ofstream mapOutStream(mapPath, std::ios::out | std::ios::binary);
+	std::ofstream mapOutStream(mapPath, std::ios::binary | std::ios::out | std::ios::in);
 
 	map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
 
 	mapOutStream.close();
+
+	/*
+	mapStream = std::ifstream(mapPath, std::ios::binary | std::ios::in);
+	std::cout << "#########################################\n";
+
+	//UserMap map;
+	map.DeserializeContentHeader(mapStream);
+	map.DeserializeSandboxMap(mapStream);
+
+	mapStream.close();*/
 
 	//std::cout << "\n" << typeid(map.sandboxContentHeader.description).name();
 	//std::cout << "\n" << typeid(mapPath).name();

@@ -139,7 +139,7 @@ void UserMap::DeserializeSandboxMap(std::ifstream &mapStream) {
 		//if ( !(placement.position.x == 0 && placement.position.y == 0 && placement.position.z == 0) ) {
 		//if ( placement.budgetIndex == 4 ) {
 		//if ( placement.engineFlags == 89 || placement.extra == 89 || placement.placementFlags == 89 ) {
-		if ( placement.budgetIndex == 4 && placement.engineFlags != 0 ) {
+		if ( placement.budgetIndex == 4 ) {//placement.budgetIndex == 4 && placement.engineFlags != 0 ) {
 			placement.print();
 			std::cout << "\n";
 		}
@@ -254,7 +254,16 @@ void UserMap::SerializeBudgetEntry(std::ofstream &mapStream, BudgetEntry budgetE
 	mapStream.write( (char*)&budgetEntry.runtimeMin, 1 );
 	mapStream.write( (char*)&budgetEntry.runtimeMax, 1 );
 	mapStream.write( (char*)&budgetEntry.countOnMap, 1 );
+	mapStream.write( (char*)&budgetEntry.designTimeMax, 1 );
 	mapStream.write( (char*)&budgetEntry.cost, 4 );
+
+	/*
+	mapStream.read((char*)&entry.tagIndex, 4);
+	mapStream.read((char*)&entry.runtimeMin, 1);
+	mapStream.read((char*)&entry.runtimeMax, 1);
+	mapStream.read((char*)&entry.countOnMap, 1);
+	mapStream.read((char*)&entry.designTimeMax, 1);
+	mapStream.read((char*)&entry.cost, 4);*/
 
 }
 
