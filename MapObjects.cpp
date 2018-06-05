@@ -139,10 +139,10 @@ void UserMap::DeserializeSandboxMap(std::ifstream &mapStream) {
 		//if ( !(placement.position.x == 0 && placement.position.y == 0 && placement.position.z == 0) ) {
 		//if ( placement.budgetIndex == 4 ) {
 		//if ( placement.engineFlags == 89 || placement.extra == 89 || placement.placementFlags == 89 ) {
-		if ( placement.budgetIndex == 4 ) {//placement.budgetIndex == 4 && placement.engineFlags != 0 ) {
-			placement.print();
-			std::cout << "\n";
-		}
+		//if (placement.budgetIndex > -1) {//if ( placement.budgetIndex == 4 ) {//placement.budgetIndex == 4 && placement.engineFlags != 0 ) {
+		//	placement.print();
+		//	std::cout << "\n";
+		//}
 	}
 
 	mapStream.seekg(0xD498);
@@ -151,10 +151,10 @@ void UserMap::DeserializeSandboxMap(std::ifstream &mapStream) {
 		DeserializeBudgetEntry(mapStream, entry);
 		sandboxMap.budget.push_back( entry );
 		
-		if ( entry.tagIndex != std::numeric_limits<sf::Uint32>::max() ) {
-			entry.print();
-			std::cout << "\n";
-		}
+		//if ( entry.tagIndex != std::numeric_limits<sf::Uint32>::max() ) {
+		//	entry.print();
+		//	std::cout << "\n";
+		//}
 	}
 
 }

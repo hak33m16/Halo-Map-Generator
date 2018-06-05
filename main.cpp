@@ -9,7 +9,7 @@
 int main() {
 
 	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
-	std::string mapPath = "C:/Program Files (x86)/Halo Online/mods/maps/TEST_2VERTICAL/sandbox.map";
+	std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
 	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
@@ -18,20 +18,66 @@ int main() {
 
 	mapStream.close();
 
-	// Should be moving the object by 2 (decent width for players)
-	for ( auto &e : map.sandboxMap.placements ) {
-		// We found the textured 0.1' x 10' x 5' wall
-		if ( e.budgetIndex == 4 && e.engineFlags != 0 ) {
-			e.position.y -= 1;
-			break;
+	std::string input = "-";
+
+	bool done = false;
+	while ( !done ) {
+
+		if ( input == "-" ) {
+
+			std::cout << "## 640 placements, 240 budgets ##\n"
+					  << "Type 'p' to view a placement, 'b' for a budget, 'q' to quit: ";
+			std::cin >> input;
+
+		} else if ( input == "b" ) {
+			
+			std::cout << "Enter the budget index to go to (0 - 255): ";
+			std::cin >> input;
+
+			map.sandboxMap.budget[std::stoi(input)].print();
+			std::cout << "\n";
+			input = "-";
+
+		} else if ( input == "p" ) {
+
+			std::cout << "Enter the placement index to go to (0 - 639): ";
+			std::cin >> input;
+
+			map.sandboxMap.placements[std::stoi(input)].print();
+			std::cout << "\n";
+			sf::Int32 budgetIndex = map.sandboxMap.placements[std::stoi(input)].budgetIndex;
+
+			std::cout << "Print this objects corresponding budget? (y/n): ";
+			std::cin >> input;
+
+			if ( input == "y" ) {
+				map.sandboxMap.budget[budgetIndex].print();
+				std::cout << "\n";
+				input = "-";
+			} else {
+				input = "-";
+			}
+
+		} else if ( input == "q" ) {
+			done = true;
 		}
+
 	}
 
-	std::ofstream mapOutStream(mapPath, std::ios::binary | std::ios::out | std::ios::in);
+	// Should be moving the object by 2 (decent width for players)
+	//for ( auto &e : map.sandboxMap.placements ) {
+		// We found the textured 0.1' x 10' x 5' wall
+	//	if ( e.budgetIndex == 4 && e.engineFlags != 0 ) {
+	//		e.position.y -= 1;
+	//		break;
+	//	}
+	//}
 
-	map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
+	//std::ofstream mapOutStream(mapPath, std::ios::binary | std::ios::out | std::ios::in);
 
-	mapOutStream.close();
+	//map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
+
+	//mapOutStream.close();
 
 	/*
 	mapStream = std::ifstream(mapPath, std::ios::binary | std::ios::in);
