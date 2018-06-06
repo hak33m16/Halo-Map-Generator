@@ -1,12 +1,76 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <stack>
+#include <queue>
 
+#include "tinyxml2.h"
 #include "MapObjects.hpp"
 
+using namespace tinyxml2;
+
+void dump_to_stdout(const char* pFilename)
+{
+	tinyxml2::XMLDocument doc(pFilename);
+	bool failed = doc.LoadFile(pFilename);
+
+	std::cout << pFilename << "\n";
+	std::cout << "Failed: " << failed << "\n";
+
+	if ( !failed )
+	{
+		//const char* title = doc.FirstChildElement("root")->FirstChildElement()->Attribute("id");//FirstChildElement("category")->GetText();
+		
+		std::stack<std::pair<sf::Uint32, std::string>> itemStack;
+		std::stack<tinyxml2::XMLNode*> nodeStack;
+
+		auto currentNode = doc.FirstChild();//("root");
+		nodeStack.push(currentNode);
+		//std::cout << currentNode->Value() << " :: ";
+		//nodeStack.push( currentNode->FirstChild() );
+		while ( !nodeStack.empty() ) {
+
+			currentNode = nodeStack.top();
+			nodeStack.pop();
+
+			while ( currentNode != nullptr ) {
+				std::cout << currentNode->Value() << " :: ";
+
+				if ( currentNode->FirstChild() != nullptr ) {
+					nodeStack.push( currentNode->FirstChild() );
+				}
+
+				currentNode = currentNode->NextSibling();
+			}
+
+			/*
+			std::cout << currentNode->Value() << " :: ";
+			while ( currentNode->NextSibling() != nullptr ) {
+				currentNode = currentNode->NextSibling();
+				std::cout << currentNode->Value() << " :: ";
+
+				if ( currentNode->FirstChild() != nullptr ) {
+					nodeStack.push( currentNode->FirstChild() );
+				}
+
+			}
+
+			currentNode = nodeStack.top();
+			nodeStack.pop();*/
+
+		}
+		//printf("Name of root (1): %s\n", title);
+	}
+}
+
 int main() {
+
+	dump_to_stdout("C:/Users/Hakeem/Documents/Repositories/Halo-Map-Generator/items.xml");
+
+	/*
 
 	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
 	std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
