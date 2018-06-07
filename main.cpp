@@ -6,9 +6,11 @@
 #include <iomanip>
 #include <stack>
 #include <queue>
+#include <map>
 
 #include "tinyxml2.h"
 #include "MapObjects.hpp"
+#include "ObjectInformation.hpp"
 
 using namespace tinyxml2;
 
@@ -22,22 +24,23 @@ void dump_to_stdout(const char* pFilename)
 
 	if ( !failed )
 	{
-		//const char* title = doc.FirstChildElement("root")->FirstChildElement()->Attribute("id");//FirstChildElement("category")->GetText();
-		
-		std::stack<std::pair<sf::Uint32, std::string>> itemStack;
 		std::stack<tinyxml2::XMLNode*> nodeStack;
 
-		auto currentNode = doc.FirstChild();//("root");
+		auto currentNode = doc.FirstChild();
 		nodeStack.push(currentNode);
-		//std::cout << currentNode->Value() << " :: ";
-		//nodeStack.push( currentNode->FirstChild() );
+
+		std::cout << "std::map<sf::Uint32, std::string> _ITEMMAP = \n    {";
 		while ( !nodeStack.empty() ) {
 
 			currentNode = nodeStack.top();
 			nodeStack.pop();
 
 			while ( currentNode != nullptr ) {
-				std::cout << currentNode->Value() << " :: ";
+
+				if ( std::string(currentNode->Value()) == "item" ) {
+					std::cout << "        { " << std::stoul(currentNode->ToElement()->Attribute("tagindex"), nullptr, 16)
+							  << ", \"" << currentNode->ToElement()->Attribute("name") << "\"},\n";
+				}
 
 				if ( currentNode->FirstChild() != nullptr ) {
 					nodeStack.push( currentNode->FirstChild() );
@@ -45,35 +48,20 @@ void dump_to_stdout(const char* pFilename)
 
 				currentNode = currentNode->NextSibling();
 			}
-
-			/*
-			std::cout << currentNode->Value() << " :: ";
-			while ( currentNode->NextSibling() != nullptr ) {
-				currentNode = currentNode->NextSibling();
-				std::cout << currentNode->Value() << " :: ";
-
-				if ( currentNode->FirstChild() != nullptr ) {
-					nodeStack.push( currentNode->FirstChild() );
-				}
-
-			}
-
-			currentNode = nodeStack.top();
-			nodeStack.pop();*/
 
 		}
-		//printf("Name of root (1): %s\n", title);
+		std::cout << "};";
+
 	}
 }
 
 int main() {
 
-	dump_to_stdout("C:/Users/Hakeem/Documents/Repositories/Halo-Map-Generator/items.xml");
-
-	/*
+	//dump_to_stdout("C:/Users/Hakeem/Documents/Repositories/Halo-Map-Generator/items.xml");
 
 	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
-	std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
+	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
+	std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
 	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
@@ -90,7 +78,7 @@ int main() {
 		if ( input == "-" ) {
 
 			std::cout << "## 640 placements, 240 budgets ##\n"
-					  << "Type 'p' to view a placement, 'b' for a budget, 'q' to quit: ";
+					  << "Type 'p' to view a placement, 'b' for a budget, 'q' to quit, 's' to save map: ";
 			std::cin >> input;
 
 		} else if ( input == "b" ) {
@@ -98,6 +86,7 @@ int main() {
 			std::cout << "Enter the budget index to go to (0 - 255): ";
 			std::cin >> input;
 
+			std::cout << "ITEM: " << _ITEMMAP[map.sandboxMap.budget[std::stoi(input)].tagIndex] << "\n";
 			map.sandboxMap.budget[std::stoi(input)].print();
 			std::cout << "\n";
 			input = "-";
@@ -115,33 +104,40 @@ int main() {
 			std::cin >> input;
 
 			if ( input == "y" ) {
-				map.sandboxMap.budget[budgetIndex].print();
-				std::cout << "\n";
-				input = "-";
+
+				if ( budgetIndex >= 0 ) {
+					std::cout << "ITEM: " << _ITEMMAP[map.sandboxMap.budget[budgetIndex].tagIndex] << "\n";
+					map.sandboxMap.budget[budgetIndex].print();
+					std::cout << "\n";
+					input = "-";
+				} else {
+					std::cout << "Invalid budget.\n";
+					input = "-";
+				}
+
 			} else {
+
 				input = "-";
+
 			}
 
 		} else if ( input == "q" ) {
+
 			done = true;
+
+		} else if ( input == "s" ) {
+			
+			std::ofstream mapOutStream(mapPath, std::ios::binary | std::ios::out | std::ios::in);
+			map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
+			mapOutStream.close();
+
+			std::cout << "Map saved.\n";
+
 		}
 
+		std::cout << "\n ## ------------------------------------ ## \n\n";
+
 	}
-
-	// Should be moving the object by 2 (decent width for players)
-	//for ( auto &e : map.sandboxMap.placements ) {
-		// We found the textured 0.1' x 10' x 5' wall
-	//	if ( e.budgetIndex == 4 && e.engineFlags != 0 ) {
-	//		e.position.y -= 1;
-	//		break;
-	//	}
-	//}
-
-	//std::ofstream mapOutStream(mapPath, std::ios::binary | std::ios::out | std::ios::in);
-
-	//map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
-
-	//mapOutStream.close();
 
 	/*
 	mapStream = std::ifstream(mapPath, std::ios::binary | std::ios::in);
@@ -183,39 +179,5 @@ int main() {
 		window.draw(shape);
 		window.display();
 	}*/
-
-	/*
-	std::string filePath1 = "C:/Users/Hakeem/Desktop/Maps/BaseOrient1Item/sandbox.map";
-	std::string filePath2 = "C:/Users/Hakeem/Desktop/Maps/BaseOrient2Item/sandbox.map";
-
-	unsigned char buffer[10000];
-	std::ifstream myFile(filePath1, std::ios::in | std::ios::binary);
-	myFile.read((char*)buffer, 10000);
-	if (!myFile) {
-		// An error occurred!
-		// myFile.gcount() returns the number of bytes read.
-		// calling myFile.clear() will reset the stream state
-		// so it is usable again.
-	}
-
-	int count = 0;
-	std::string sixteenBytes = "";
-	for (auto &e : buffer) {
-
-		std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<unsigned int>(e) << " ";
-		++count;
-
-		sixteenBytes += isprint(e) ? e : '.';
-
-		if (count % 16 == 0) {
-			std::cout << sixteenBytes << "\n";
-			sixteenBytes = "";
-		}
-
-	}
-
-	return 0;*/
-
-
 
 }

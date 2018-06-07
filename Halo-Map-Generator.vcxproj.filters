@@ -21,9 +21,18 @@
     <ClCompile Include="MapObjects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tinyxml2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MapObjects.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml2.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectInformation.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
