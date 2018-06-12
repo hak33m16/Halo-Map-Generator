@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <SFML/OpenGL.hpp>
 
 #include <SFGUI/SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
@@ -11,6 +12,7 @@
 #include <stack>
 #include <queue>
 #include <map>
+#include <cmath>
 
 #include "tinyxml2.h"
 #include "MapObjects.hpp"
@@ -22,12 +24,84 @@ void dump_to_stdout(const char*);
 
 int main() {
 
-	sf::Window sfml_window(sf::VideoMode(800, 600), "SFGUI with OpenGL example", sf::Style::Titlebar | sf::Style::Close);
-	sf::Event event;
+	sf::RenderWindow renderWindow( sf::VideoMode(800, 600), "Halo Map Generator" );
+	sfg::SFGUI sfgui;
+	
+	renderWindow.resetGLStates();
+	renderWindow.setFramerateLimit(60);
+
+	sfg::Desktop desktop;
+	desktop.SetProperty("Button#create_window", "FontSize", 18.f);
 
 	float refresh_rate = 1 / 60; // 1/60th of a second
 
-	sfg::SFGUI sfgui;
+	auto mainWindow = sfg::Window::Create();
+
+	auto introLabel = sfg::Label::Create("Click on create window to create a window.");
+
+	auto createWindowButton = sfg::Button::Create("Create window.");
+	createWindowButton->SetId("create_Window");
+
+	auto mainBox = sfg::Box::Create( sfg::Box::Orientation::VERTICAL, 5.f );
+	mainBox->Pack( introLabel, false );
+	mainBox->Pack( createWindowButton, false );
+
+	auto scrolledWindowBox = sfg::Box::Create( sfg::Box::Orientation::VERTICAL );
+
+	/* Adding map stuff to box. */
+
+	std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
+	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
+
+	//std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
+	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
+
+	UserMap map;
+	map.DeserializeContentHeader(mapStream);
+	map.DeserializeSandboxMap(mapStream);
+
+	mapStream.close();
+
+	auto label = sfg::Label::Create();
+	label->SetText("Text Entry");
+
+	auto entry_table = sfg::Table::Create();
+	//auto n_table = sfg::Table::Create();
+	for ( int i = 0; i < map.sandboxMap.placements.size() - 1; ++ i ) {
+		if (map.sandboxMap.placements.at(i).budgetIndex != -1 ) {
+			auto button = sfg::Button::Create(_ITEMMAP[map.sandboxMap.budget[ map.sandboxMap.placements.at(i).budgetIndex ].tagIndex]);
+			auto lambda = [&] () {
+				std::string tmp = "hello: ";
+				tmp += std::to_string(i);
+				std::cout << tmp << "\n";
+				label->SetText(tmp);
+			};
+			
+			button->GetSignal(sfg::Widget::OnLeftClick).Connect( lambda );
+			//n_table->Attach(button);
+			scrolledWindowBox->Pack(button);
+		}
+	}
+
+	auto scrolledWindow = sfg::ScrolledWindow::Create();
+
+	scrolledWindow->SetScrollbarPolicy( sfg::ScrolledWindow::HORIZONTAL_ALWAYS | sfg::ScrolledWindow::VERTICAL_AUTOMATIC );
+	scrolledWindow->AddWithViewport( scrolledWindowBox );
+	scrolledWindow->SetRequisition( sf::Vector2f( 500.f, 100.f ) );
+	
+	auto n_table = sfg::Table::Create();
+	n_table->Attach( scrolledWindow, sf::Rect<sf::Uint32>(1, 1, 2, 2), sfg::Table::FILL | sfg::Table::EXPAND, sfg::Table::FILL | sfg::Table::EXPAND );
+
+
+	n_table->Attach( label, sf::Rect<sf::Uint32>(2, 1, 2, 2) );
+
+	/* ---- */
+
+	mainWindow->Add( n_table );
+
+	desktop.Add( mainWindow );
+
+	/* ------ */
 
 	auto table = sfg::Table::Create();
 	table->SetRowSpacings(5.f);
@@ -36,15 +110,6 @@ int main() {
 	/*
 	I need to understand how to resize the widget window here, and how to lock its position.
 	*/
-
-	auto window = sfg::Window::Create();
-	window->SetTitle("SFGUI with OpenGL");
-	window->Add( table );
-
-	sfg::Desktop desktop;
-	desktop.Add( window );
-
-	sfml_window.setActive();
 
 	auto red_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
 	auto green_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
@@ -55,12 +120,13 @@ int main() {
 	table->Attach(green_scale, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL | sfg::Table::EXPAND, sfg::Table::FILL | sfg::Table::EXPAND);
 	table->Attach(auto_check, sf::Rect<sf::Uint32>(2, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
 	
+	sf::Event event;
 	sf::Clock clock;
 	float accumulator = 0.f;
-	while ( sfml_window.isOpen() ) {
+	while ( renderWindow.isOpen() ) {
 		accumulator += clock.restart().asSeconds();
 
-		while ( sfml_window.pollEvent( event ) ) {
+		while ( renderWindow.pollEvent( event ) ) {
 			if ( event.type == sf::Event::Closed ) {
 				return 0;
 			} else {
@@ -73,11 +139,12 @@ int main() {
 			accumulator = 0;
 
 			desktop.Update( refresh_rate );
-			sfgui.Display( sfml_window );
-			sfml_window.display();
+			renderWindow.clear();
+			sfgui.Display( renderWindow );
+			renderWindow.display();
 
 		}
-
+		
 	}
 
 	///////////////////////////////////////////////////
@@ -85,10 +152,10 @@ int main() {
 
 	//dump_to_stdout("C:/Users/Hakeem/Documents/Repositories/Halo-Map-Generator/items.xml");
 
-	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
+	std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
 	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
 
-	std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
+	//std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
 	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
@@ -166,7 +233,7 @@ int main() {
 
 	}
 
-	*/
+	
 	///////////////////////////////////////////////
 
 	/*
