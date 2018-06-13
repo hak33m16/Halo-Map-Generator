@@ -22,6 +22,37 @@ using namespace tinyxml2;
 
 void dump_to_stdout(const char*);
 
+class TestObj {
+public:
+	TestObj() { }
+	
+	void setPlacement(SandboxPlacement *placement) {
+		placement_ = placement;
+	}
+
+	void setLabel(std::shared_ptr<sfg::Label> label) {
+		label_ = label;
+	}
+
+	void operator()() {
+
+		std::string text = "Placement: (";// +placement_->position.x;
+		text += std::to_string(placement_->position.x);
+		text += ", ";
+		text += std::to_string(placement_->position.y);
+		text += ", ";
+		text += std::to_string(placement_->position.z);
+		text += ")";
+
+		label_->SetText(text);
+	}
+
+private:
+	SandboxPlacement *placement_;
+	std::shared_ptr<sfg::Label> label_;
+
+};
+
 int main() {
 
 	sf::RenderWindow renderWindow( sf::VideoMode(800, 600), "Halo Map Generator" );
@@ -50,10 +81,10 @@ int main() {
 
 	/* Adding map stuff to box. */
 
-	std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
+	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
 	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
 
-	//std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
+	std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
 	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
@@ -70,15 +101,12 @@ int main() {
 	for ( int i = 0; i < map.sandboxMap.placements.size() - 1; ++ i ) {
 		if (map.sandboxMap.placements.at(i).budgetIndex != -1 ) {
 			auto button = sfg::Button::Create(_ITEMMAP[map.sandboxMap.budget[ map.sandboxMap.placements.at(i).budgetIndex ].tagIndex]);
-			auto lambda = [&] () {
-				std::string tmp = "hello: ";
-				tmp += std::to_string(i);
-				std::cout << tmp << "\n";
-				label->SetText(tmp);
-			};
 			
-			button->GetSignal(sfg::Widget::OnLeftClick).Connect( lambda );
-			//n_table->Attach(button);
+			TestObj *obj = new TestObj;
+			obj->setLabel( label );
+			obj->setPlacement( &map.sandboxMap.placements.at(i) );
+			button->GetSignal( sfg::Widget::OnLeftClick ).Connect( *obj );
+
 			scrolledWindowBox->Pack(button);
 		}
 	}
