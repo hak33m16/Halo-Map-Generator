@@ -30,25 +30,50 @@ public:
 		placement_ = placement;
 	}
 
+	void setBudget(BudgetEntry *budget) {
+		budget_ = budget;
+	}
+
 	void setLabel(std::shared_ptr<sfg::Label> label) {
 		label_ = label;
 	}
 
 	void operator()() {
 
-		std::string text = "Placement: (";// +placement_->position.x;
+		std::string text = "Position: (";// +placement_->position.x;
 		text += std::to_string(placement_->position.x);
 		text += ", ";
 		text += std::to_string(placement_->position.y);
 		text += ", ";
 		text += std::to_string(placement_->position.z);
-		text += ")";
+		text += ")\n";
+
+		text += "Up Vector: (";// +placement_->position.x;
+		text += std::to_string(placement_->upVector.x);
+		text += ", ";
+		text += std::to_string(placement_->upVector.y);
+		text += ", ";
+		text += std::to_string(placement_->upVector.z);
+		text += ")\n";
+
+		text += "Right Vector: (";// +placement_->position.x;
+		text += std::to_string(placement_->rightVector.x);
+		text += ", ";
+		text += std::to_string(placement_->rightVector.y);
+		text += ", ";
+		text += std::to_string(placement_->rightVector.z);
+		text += ")\n";
+
+		text += "Count on Map: ";
+		text += std::to_string(budget_->countOnMap);
+		text += "\n";
 
 		label_->SetText(text);
 	}
 
 private:
 	SandboxPlacement *placement_;
+	BudgetEntry *budget_;
 	std::shared_ptr<sfg::Label> label_;
 
 };
@@ -66,7 +91,9 @@ int main() {
 
 	float refresh_rate = 1 / 60; // 1/60th of a second
 
-	auto mainWindow = sfg::Window::Create();
+	auto mainWindow = sfg::Window::Create( sfg::Window::Style::NO_STYLE | sfg::Window::Style::BACKGROUND | sfg::Window::Style::SHADOW | sfg::Window::Style::TITLEBAR );
+	mainWindow->SetStyle(mainWindow->GetStyle() ^ sfg::Window::TITLEBAR);
+	
 
 	auto introLabel = sfg::Label::Create("Click on create window to create a window.");
 
@@ -105,6 +132,7 @@ int main() {
 			TestObj *obj = new TestObj;
 			obj->setLabel( label );
 			obj->setPlacement( &map.sandboxMap.placements.at(i) );
+			obj->setBudget( &map.sandboxMap.budget[ map.sandboxMap.placements.at(i).budgetIndex ] );
 			button->GetSignal( sfg::Widget::OnLeftClick ).Connect( *obj );
 
 			scrolledWindowBox->Pack(button);
@@ -121,12 +149,12 @@ int main() {
 	n_table->Attach( scrolledWindow, sf::Rect<sf::Uint32>(1, 1, 2, 2), sfg::Table::FILL | sfg::Table::EXPAND, sfg::Table::FILL | sfg::Table::EXPAND );
 
 
-	n_table->Attach( label, sf::Rect<sf::Uint32>(2, 1, 2, 2) );
+	n_table->Attach( label, sf::Rect<sf::Uint32>(2, 1, 0, 2) );
 
 	/* ---- */
 
 	mainWindow->Add( n_table );
-
+	
 	desktop.Add( mainWindow );
 
 	/* ------ */
@@ -148,6 +176,9 @@ int main() {
 	table->Attach(green_scale, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL | sfg::Table::EXPAND, sfg::Table::FILL | sfg::Table::EXPAND);
 	table->Attach(auto_check, sf::Rect<sf::Uint32>(2, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
 	
+	mainWindow->SetAllocation(sf::FloatRect(0.f, 0.f, renderWindow.getSize().x, renderWindow.getSize().y));
+	
+
 	sf::Event event;
 	sf::Clock clock;
 	float accumulator = 0.f;
