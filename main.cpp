@@ -17,6 +17,7 @@
 #include "tinyxml2.h"
 #include "MapObjects.hpp"
 #include "ObjectInformation.hpp"
+#include "MazeFunctions.hpp"
 
 using namespace tinyxml2;
 
@@ -80,6 +81,18 @@ private:
 
 int main() {
 
+	Cell Level[SIZE][SIZE];
+
+	int posX = 0;
+	int posY = 0;
+	int goalX = 0;
+	int goalY = 0;
+
+	//MazeFunctions::Initialize(Level);
+	//MazeFunctions::Redraw(Level);
+	//MazeFunctions::GenerateMaze(Level, posX, posY, goalX, goalY);
+	//MazeFunctions::Redraw(Level);
+
 	sf::RenderWindow renderWindow( sf::VideoMode(800, 600), "Halo Map Generator" );
 	sfg::SFGUI sfgui;
 	
@@ -111,7 +124,7 @@ int main() {
 	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
 	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
 
-	std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
+	std::string mapPath = "D:/Games/Halo Online/mods/maps/Edge_Empty_1Blk/sandbox.map";
 	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
@@ -121,12 +134,13 @@ int main() {
 	mapStream.close();
 
 	auto label = sfg::Label::Create();
-	label->SetText("Text Entry");
+	label->SetText("Object Information");
 
 	auto entry_table = sfg::Table::Create();
 	//auto n_table = sfg::Table::Create();
 	for ( int i = 0; i < map.sandboxMap.placements.size() - 1; ++ i ) {
 		if (map.sandboxMap.placements.at(i).budgetIndex != -1 ) {
+
 			auto button = sfg::Button::Create(_ITEMMAP[map.sandboxMap.budget[ map.sandboxMap.placements.at(i).budgetIndex ].tagIndex]);
 			
 			TestObj *obj = new TestObj;
@@ -159,14 +173,20 @@ int main() {
 
 	/* ------ */
 
-	auto table = sfg::Table::Create();
-	table->SetRowSpacings(5.f);
-	table->SetColumnSpacings(5.f);
+	auto entryBox = sfg::Entry::Create();
+	entryBox->SetRequisition(sf::Vector2f(80.f, 0.f));
+
+	mainWindow->Add(entryBox);
+
+	//auto table = sfg::Table::Create();
+	//table->SetRowSpacings(5.f);
+	//table->SetColumnSpacings(5.f);
 
 	/*
 	I need to understand how to resize the widget window here, and how to lock its position.
 	*/
 
+	/*
 	auto red_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
 	auto green_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
 	auto blue_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
@@ -174,10 +194,9 @@ int main() {
 	auto auto_check = sfg::CheckButton::Create("Auto");
 
 	table->Attach(green_scale, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL | sfg::Table::EXPAND, sfg::Table::FILL | sfg::Table::EXPAND);
-	table->Attach(auto_check, sf::Rect<sf::Uint32>(2, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+	table->Attach(auto_check, sf::Rect<sf::Uint32>(2, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL);*/
 	
 	mainWindow->SetAllocation(sf::FloatRect(0.f, 0.f, renderWindow.getSize().x, renderWindow.getSize().y));
-	
 
 	sf::Event event;
 	sf::Clock clock;
