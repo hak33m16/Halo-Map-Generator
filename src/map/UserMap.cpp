@@ -1,113 +1,14 @@
-#include "MapObjects.hpp"
+#include "map/UserMap.hpp"
 
-#include <fstream>
-#include <limits>
-
-BudgetEntry::BudgetEntry() {
-
-	tagIndex = 4294967295;
+UserMap::UserMap() {
 
 }
-
-void BudgetEntry::print() {
-
-	std::cout << "Tag Index: " << tagIndex << "\n";
-	std::cout << "Count on Map: " << (int)countOnMap << "\n";
-	std::cout << "Cost: " << cost << "\n";
-	std::cout << "Runtime Min: " << (int)runtimeMin << "\n";
-	std::cout << "Runtime Max: " << (int)runtimeMax << "\n";
-	std::cout << "Design Time Max: " << (int)designTimeMax << "\n";
-
-}
-
-SandboxPlacement::SandboxPlacement() {
-
-}
-
-void SandboxPlacement::print() {
-
-	std::cout << "Budget Index: " << budgetIndex << "\n";
-	std::cout << "Engine Flags: " << engineFlags << "\n";
-	std::cout << "Extra: " << (int)extra << "\n";
-	std::cout << "Flags: " << (int)flags << "\n";
-	std::cout << "Gizmo Datum Handle: " << gizmoDatumHandle << "\n";
-	std::cout << "Object Datum Handle: " << objectDatumHandle << "\n";
-	std::cout << "Object Type: " << (int)objectType << "\n";
-	std::cout << "Placement Flags: " << placementFlags << "\n";
-	std::cout << "Position: (" << std::fixed << (float)position.x << ", " << (float)position.y << ", " << (float)position.z << ")\n";
-	std::cout << "Up Vector: (" << upVector.x << ", " << upVector.y << ", " << upVector.z << ")\n";
-	std::cout << "Right Vector: (" << rightVector.x << ", " << rightVector.y << ", " << rightVector.z << ")\n";
-	std::cout << "Respawn Time: " << (int)respawnTime << "\n";
-	std::cout << "Team: " << (int)team << "\n";
-	std::cout << "Unknown 1: " << unknown_1 << "\n";
-	std::cout << "Unknown 2: " << unknown_2 << "\n";
-	std::cout << "Unknown 3: " << unknown_3 << "\n";
-	std::cout << "Zone Bottom: " << zoneBottom << "\n";
-	std::cout << "Zone Depth: " << zoneDepth << "\n";
-	std::cout << "Zone Radius Width: " << zoneRadiusWidth << "\n";
-	std::cout << "Zone Shape: " << (int)zoneShape << "\n";
-	std::cout << "Zone Top: " << zoneTop << "\n";
-
-}
-
-SandboxContentHeader::SandboxContentHeader() {
-
-}
-
-SandboxMap::SandboxMap() {
-
-}
-
-////////////////////////////////
-//
-// ObjectFactory
-//
-//////////
-
-ObjectFactory::ObjectFactory() {
-
-}
-
-SandboxPlacement ObjectFactory::getBlock(Block block, sf::Int32 budgetIndex, sf::Vector3f position, sf::Vector3f upVector, sf::Vector3f rightVector, sf::Uint16 material) {
-
-	SandboxPlacement placement;
-	placement.budgetIndex = budgetIndex;
-	placement.engineFlags = material;
-	placement.extra = 0;
-	placement.flags = 12;
-	placement.gizmoDatumHandle = 4294967295;
-	placement.objectDatumHandle = 4294967295;
-	placement.objectType = 0;
-	placement.placementFlags = 3;
-	placement.position = position;
-	placement.upVector = upVector;
-	placement.rightVector = rightVector;
-	placement.respawnTime = 30;
-	placement.team = 8;
-	placement.unknown_1 = 0;
-	placement.unknown_2 = 4294967295;
-	placement.unknown_3 = 4294967295;
-	placement.zoneBottom = 0.0f;
-	placement.zoneDepth = 0.0f;
-	placement.zoneRadiusWidth = 0.0f;
-	placement.zoneShape = 0;
-	placement.zoneTop = 0.0f;
-
-	return placement;
-
-}
-
-////////////////////////////////
-//
-// Helper functions.
-//
-//////////
 
 std::string UserMap::interpretString(std::ifstream &fStream, int length) {
 
 	std::string streamString;
 
-	for (int i = 0; i < length; ++ i) {
+	for (int i = 0; i < length; ++i) {
 		char streamChar;
 		fStream.read(&streamChar, 1);
 		streamString += streamChar;
@@ -117,18 +18,6 @@ std::string UserMap::interpretString(std::ifstream &fStream, int length) {
 	return streamString;
 
 }
-
-/////////////////////////////////////////////
-//
-// UserMap class implementations.
-//
-//////////
-
-UserMap::UserMap() {
-
-}
-
-// Begin deserialize helpers.
 
 void UserMap::DeserializeContentHeader(std::ifstream &mapStream) {
 

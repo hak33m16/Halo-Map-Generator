@@ -15,9 +15,10 @@
 #include <cmath>
 #include <limits>
 
-#include "tinyxml2.h"
-#include "MapObjects.hpp"
-#include "ObjectInformation.hpp"
+#include "tinyxml2/tinyxml2.h"
+#include "map/UserMap.hpp"
+#include "map/ObjectInformation.hpp"
+#include "map/ObjectFactory.hpp"
 
 using namespace tinyxml2;
 
