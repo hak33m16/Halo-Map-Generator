@@ -139,14 +139,11 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MapObjects.cpp" />
-    <ClCompile Include="MazeFunctions.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MapObjects.hpp" />
-    <ClInclude Include="MazeFunctions.hpp" />
     <ClInclude Include="ObjectInformation.hpp" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="tinyxml2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -13,15 +13,17 @@
 #include <queue>
 #include <map>
 #include <cmath>
+#include <limits>
 
 #include "tinyxml2.h"
 #include "MapObjects.hpp"
 #include "ObjectInformation.hpp"
-#include "MazeFunctions.hpp"
 
 using namespace tinyxml2;
 
 void dump_to_stdout(const char*);
+bool placeItem(UserMap& map, sf::Uint32 tagIndex, sf::Vector3f position, sf::Vector3f upVector, sf::Vector3f rightVector);
+bool saveMap(UserMap& map, std::string path);
 
 class TestObj {
 public:
@@ -81,18 +83,6 @@ private:
 
 int main() {
 
-	Cell Level[SIZE][SIZE];
-
-	int posX = 0;
-	int posY = 0;
-	int goalX = 0;
-	int goalY = 0;
-
-	//MazeFunctions::Initialize(Level);
-	//MazeFunctions::Redraw(Level);
-	//MazeFunctions::GenerateMaze(Level, posX, posY, goalX, goalY);
-	//MazeFunctions::Redraw(Level);
-
 	sf::RenderWindow renderWindow( sf::VideoMode(800, 600), "Halo Map Generator" );
 	sfg::SFGUI sfgui;
 	
@@ -124,7 +114,7 @@ int main() {
 	//std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
 	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
 
-	std::string mapPath = "D:/Games/Halo Online/mods/maps/Edge_Empty_1Blk/sandbox.map";
+	std::string mapPath = "D:/Games/Halo Online/mods/maps/Edge_Empty/sandbox.map";
 	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
@@ -136,13 +126,24 @@ int main() {
 	auto label = sfg::Label::Create();
 	label->SetText("Object Information");
 
+	std::cout << "########## MAP ##########\n";
+	std::cout << "Budget Entry Count: " << map.sandboxMap.budgetEntryCount << "\n";
+	std::cout << "Scenery Object Count: " << map.sandboxMap.sceneryObjectCount << "\n";
+	std::cout << "Total Object Count: " << map.sandboxMap.totalObjectCount << "\n";
+	std::cout << "Size: " << map.sandboxContentHeader.size << "\n";
+	std::cout << "Name: " << map.sandboxContentHeader.name << "\n";
+
 	auto entry_table = sfg::Table::Create();
 	//auto n_table = sfg::Table::Create();
+	std::cout << "########## Objects Placed ##########\n";
 	for ( int i = 0; i < map.sandboxMap.placements.size() - 1; ++ i ) {
-		if (map.sandboxMap.placements.at(i).budgetIndex != -1 ) {
-
-			auto button = sfg::Button::Create(_ITEMMAP[map.sandboxMap.budget[ map.sandboxMap.placements.at(i).budgetIndex ].tagIndex]);
+		if ( map.sandboxMap.placements.at(i).budgetIndex != -1 ){ //&& map.sandboxMap.placements.at(i).budgetIndex != std::numeric_limits<sf::Uint32>::max() ) {
 			
+			auto button = sfg::Button::Create(_ITEMMAP[map.sandboxMap.budget[ map.sandboxMap.placements.at(i).budgetIndex ].tagIndex] + " (" + std::to_string(map.sandboxMap.budget[map.sandboxMap.placements.at(i).budgetIndex].tagIndex) + ")");
+			std::cout << "\nPLACEMENT INDEX: " << i << "\n";
+			map.sandboxMap.placements[i].print();
+			//map.sandboxMap.budget[map.sandboxMap.placements.at(i).budgetIndex].print();
+
 			TestObj *obj = new TestObj;
 			obj->setLabel( label );
 			obj->setPlacement( &map.sandboxMap.placements.at(i) );
@@ -152,6 +153,28 @@ int main() {
 			scrolledWindowBox->Pack(button);
 		}
 	}
+
+	std::cout << "########## Budgets ##########\n";
+	int i = 0;
+	for ( auto &e : map.sandboxMap.budget ) {
+
+		// Maximum value of the Uint32 is used by the engine
+		// to indicate an empty budget entry
+		if ( e.tagIndex != std::numeric_limits<sf::Uint32>::max() ) {
+			std::cout << "\n" << "Index: " << i << "\n";
+			e.print();
+		}
+
+		++ i;
+
+	}
+
+	// 328 = 0.1 x 1 x 1 block
+	sf::Vector3f position(0.0f, -17.0f, 2.0f), upVector(0.0f, 0.0f, 1.0f), rightVector(1.0f, 0.0f, 0.0f);
+	//placeItem(map, 328, position, upVector, rightVector);
+	//map.sandboxMap.totalObjectCount += 2;
+	//map.sandboxMap.sceneryObjectCount += 2;
+	//saveMap(map, mapPath);
 
 	auto scrolledWindow = sfg::ScrolledWindow::Create();
 
@@ -332,6 +355,127 @@ int main() {
 		window.draw(shape);
 		window.display();
 	}*/
+
+}
+
+bool placeItem(UserMap& map, sf::Uint32 tagIndex, sf::Vector3f position, sf::Vector3f upVector, sf::Vector3f rightVector) {
+
+	bool itemPlaced = false;
+
+	// Verify that the item is valid
+	auto pPair = _ITEMMAP.find( tagIndex );
+	if ( pPair != _ITEMMAP.end() ) {
+		
+		std::cout << "item is valid\n";
+
+		bool hasEntry = false;
+		bool belowMaxPlacements = true;
+		int budgetIndex = -1;
+		// Check if item already has budget entry or is above max placements
+		for (int i = 0; i < map.sandboxMap.budget.size(); ++ i) {// auto &budget : map.sandboxMap.budget) {
+			if ( map.sandboxMap.budget[i].tagIndex == tagIndex ) {
+				std::cout << "found item budget entry at index " << i << "\n";
+
+				budgetIndex = i;
+				if ( map.sandboxMap.budget[i].countOnMap >= map.sandboxMap.budget[i].designTimeMax ) {
+					belowMaxPlacements = false;
+				}
+
+				hasEntry = true;
+				break;
+			
+			// This is an empty budget slot, grab first one we find in case we don't find an existing entry
+			} else if ( map.sandboxMap.budget[i].tagIndex == std::numeric_limits<sf::Uint32>::max() && budgetIndex == -1 ) {
+				budgetIndex = i;
+			}
+		}
+
+		int placementIndex = -1;
+		// Check if there is room to place the item on the map
+		for (int i = 0; i < map.sandboxMap.placements.size(); ++ i) {
+			// -1 means it is an unused slot
+			// must be at or past index 10???????
+			if ( i >= 10 ) {
+
+				if ( map.sandboxMap.placements[i].budgetIndex == -1 ) {
+					std::cout << "found unused placement slot at index " << i << "\n";
+					placementIndex = i;
+					break;
+				} else if ( map.sandboxMap.budget[map.sandboxMap.placements[i].budgetIndex].tagIndex == std::numeric_limits<sf::Uint32>::max() ) {
+					std::cout << "found unused placement slot at index " << i << "\n";
+					placementIndex = i;
+					break;
+				}
+
+			}
+		}
+
+		// There's a spot to place the item in, and we haven't maxed it out
+		if ( placementIndex >= 0 && belowMaxPlacements ) {
+
+			if ( hasEntry ) {
+
+				BudgetEntry &rEntry = map.sandboxMap.budget[budgetIndex];
+				++ rEntry.countOnMap;
+				++ rEntry.runtimeMax;
+				++ map.sandboxMap.totalObjectCount;
+
+				std::cout << "increased countonmap to " << (int)rEntry.countOnMap << " for item " << _ITEMMAP[tagIndex] << "\n";
+
+				map.sandboxMap.placements[placementIndex] = ObjectFactory::getBlock(static_cast<Block>(tagIndex), budgetIndex, position, upVector, rightVector);
+
+				itemPlaced = true;
+
+			// Does not have a budget entry, but we can create one
+			} else if ( budgetIndex > -1 ) {
+			
+				std::cout << "manually creating budget entry to place item, and make count 1\n";
+
+				// must clear out all old garbage placements that might belong to the
+				// new budget entry we're creating....
+				// i.e. if the placement's budget's tagIndex == std::numeric_limits<sf::Uint32>::max()
+				// then it's a garbage placement
+				// or in our case, if the placement has the budgetIndex of the one we're about to create
+
+				for ( auto &p : map.sandboxMap.placements ) {
+					// This must be garbage placement data
+					if ( p.budgetIndex == budgetIndex ) {
+						p.budgetIndex = -1;
+					}
+				}
+
+				++ map.sandboxMap.totalObjectCount;
+				++ map.sandboxMap.budgetEntryCount;
+
+				BudgetEntry entry;
+				entry.tagIndex = tagIndex;
+				entry.countOnMap = 1;
+				entry.cost = 0.0f;
+				entry.runtimeMin = 0;
+				entry.runtimeMax = 1;
+				entry.designTimeMax = 255;
+
+				map.sandboxMap.budget[budgetIndex] = entry;
+
+				map.sandboxMap.placements[placementIndex] = ObjectFactory::getBlock(static_cast<Block>(tagIndex), budgetIndex, position, upVector, rightVector);
+
+				itemPlaced = true;
+
+			}
+
+		}
+
+	}
+
+	return itemPlaced;
+
+}
+
+bool saveMap(UserMap& map, std::string path) {
+
+	std::ofstream mapOutStream(path, std::ios::binary | std::ios::out | std::ios::in);
+	map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
+	mapOutStream.close();
 
 }
 

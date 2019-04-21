@@ -5,6 +5,8 @@
 
 BudgetEntry::BudgetEntry() {
 
+	tagIndex = 4294967295;
+
 }
 
 void BudgetEntry::print() {
@@ -32,14 +34,14 @@ void SandboxPlacement::print() {
 	std::cout << "Object Datum Handle: " << objectDatumHandle << "\n";
 	std::cout << "Object Type: " << (int)objectType << "\n";
 	std::cout << "Placement Flags: " << placementFlags << "\n";
-	std::cout << "Position: (" << position.x << ", " << position.y << ", " << position.z << ")\n";
-	std::cout << "Respawn Time: " << (int)respawnTime << "\n";
+	std::cout << "Position: (" << std::fixed << (float)position.x << ", " << (float)position.y << ", " << (float)position.z << ")\n";
+	std::cout << "Up Vector: (" << upVector.x << ", " << upVector.y << ", " << upVector.z << ")\n";
 	std::cout << "Right Vector: (" << rightVector.x << ", " << rightVector.y << ", " << rightVector.z << ")\n";
+	std::cout << "Respawn Time: " << (int)respawnTime << "\n";
 	std::cout << "Team: " << (int)team << "\n";
 	std::cout << "Unknown 1: " << unknown_1 << "\n";
 	std::cout << "Unknown 2: " << unknown_2 << "\n";
 	std::cout << "Unknown 3: " << unknown_3 << "\n";
-	std::cout << "Up Vector: (" << upVector.x << ", " << upVector.y << ", " << upVector.z << ")\n";
 	std::cout << "Zone Bottom: " << zoneBottom << "\n";
 	std::cout << "Zone Depth: " << zoneDepth << "\n";
 	std::cout << "Zone Radius Width: " << zoneRadiusWidth << "\n";
@@ -53,6 +55,45 @@ SandboxContentHeader::SandboxContentHeader() {
 }
 
 SandboxMap::SandboxMap() {
+
+}
+
+////////////////////////////////
+//
+// ObjectFactory
+//
+//////////
+
+ObjectFactory::ObjectFactory() {
+
+}
+
+SandboxPlacement ObjectFactory::getBlock(Block block, sf::Int32 budgetIndex, sf::Vector3f position, sf::Vector3f upVector, sf::Vector3f rightVector, sf::Uint16 material) {
+
+	SandboxPlacement placement;
+	placement.budgetIndex = budgetIndex;
+	placement.engineFlags = material;
+	placement.extra = 0;
+	placement.flags = 12;
+	placement.gizmoDatumHandle = 4294967295;
+	placement.objectDatumHandle = 4294967295;
+	placement.objectType = 0;
+	placement.placementFlags = 3;
+	placement.position = position;
+	placement.upVector = upVector;
+	placement.rightVector = rightVector;
+	placement.respawnTime = 30;
+	placement.team = 8;
+	placement.unknown_1 = 0;
+	placement.unknown_2 = 4294967295;
+	placement.unknown_3 = 4294967295;
+	placement.zoneBottom = 0.0f;
+	placement.zoneDepth = 0.0f;
+	placement.zoneRadiusWidth = 0.0f;
+	placement.zoneShape = 0;
+	placement.zoneTop = 0.0f;
+
+	return placement;
 
 }
 
@@ -240,6 +281,7 @@ void UserMap::SerializeSandboxMap(std::ofstream &mapStream, SandboxMap &sandboxM
 
 }
 
+// 12 bytes per entry
 void UserMap::SerializeVector3f(std::ofstream &mapStream, sf::Vector3f vector) {
 
 	mapStream.write( (char*)&vector.x, 4 );
@@ -248,6 +290,7 @@ void UserMap::SerializeVector3f(std::ofstream &mapStream, sf::Vector3f vector) {
 
 }
 
+// 12 bytes per entry
 void UserMap::SerializeBudgetEntry(std::ofstream &mapStream, BudgetEntry budgetEntry) {
 
 	mapStream.write( (char*)&budgetEntry.tagIndex, 4 );
@@ -257,16 +300,9 @@ void UserMap::SerializeBudgetEntry(std::ofstream &mapStream, BudgetEntry budgetE
 	mapStream.write( (char*)&budgetEntry.designTimeMax, 1 );
 	mapStream.write( (char*)&budgetEntry.cost, 4 );
 
-	/*
-	mapStream.read((char*)&entry.tagIndex, 4);
-	mapStream.read((char*)&entry.runtimeMin, 1);
-	mapStream.read((char*)&entry.runtimeMax, 1);
-	mapStream.read((char*)&entry.countOnMap, 1);
-	mapStream.read((char*)&entry.designTimeMax, 1);
-	mapStream.read((char*)&entry.cost, 4);*/
-
 }
 
+// 16 + 36 + 32 = 84 bytes per entry
 void UserMap::SerializePlacement(std::ofstream &mapStream, SandboxPlacement &placement) {
 
 	mapStream.write( (char*)&placement.placementFlags, 2 );
