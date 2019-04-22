@@ -140,11 +140,15 @@
     <ClCompile Include="dependencies\tinyxml2\src\tinyxml2.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\map\BudgetEntry.cpp" />
+    <ClCompile Include="src\maze\DirectionHelper.cpp" />
     <ClCompile Include="src\map\ObjectFactory.cpp" />
     <ClCompile Include="src\map\SandboxContentHeader.cpp" />
     <ClCompile Include="src\map\SandboxMap.cpp" />
     <ClCompile Include="src\map\SandboxPlacement.cpp" />
     <ClCompile Include="src\map\UserMap.cpp" />
+    <ClCompile Include="src\maze\Cell.cpp" />
+    <ClCompile Include="src\maze\MazeFunctions.cpp" />
+    <ClCompile Include="src\maze\Wall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\map\BudgetEntry.hpp" />
@@ -154,6 +158,10 @@
     <ClInclude Include="include\map\SandboxMap.hpp" />
     <ClInclude Include="include\map\SandboxPlacement.hpp" />
     <ClInclude Include="include\map\UserMap.hpp" />
+    <ClInclude Include="include\maze\Cell.hpp" />
+    <ClInclude Include="include\maze\DirectionHelper.hpp" />
+    <ClInclude Include="include\maze\MazeFunctions.hpp" />
+    <ClInclude Include="include\maze\Wall.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

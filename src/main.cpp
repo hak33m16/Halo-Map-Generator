@@ -14,11 +14,13 @@
 #include <map>
 #include <cmath>
 #include <limits>
+#include <time.h>
 
 #include "tinyxml2/tinyxml2.h"
 #include "map/UserMap.hpp"
 #include "map/ObjectInformation.hpp"
 #include "map/ObjectFactory.hpp"
+#include "maze/MazeFunctions.hpp"
 
 using namespace tinyxml2;
 
@@ -83,6 +85,18 @@ private:
 };
 
 int main() {
+
+	MazeFunctions::mtEngine = std::mt19937(time(nullptr));
+
+	// Setup maze
+	const int size = 20;
+	Cell maze[size][size];
+	MazeFunctions::buildTheWall(maze, size);
+
+	// Create maze
+	MazeFunctions::init(maze, size);
+
+	MazeFunctions::printMaze(maze, size);
 
 	sf::RenderWindow renderWindow( sf::VideoMode(800, 600), "Halo Map Generator" );
 	sfg::SFGUI sfgui;
@@ -249,113 +263,6 @@ int main() {
 		
 	}
 
-	///////////////////////////////////////////////////
-	/*
-
-	//dump_to_stdout("C:/Users/Hakeem/Documents/Repositories/Halo-Map-Generator/items.xml");
-
-	std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
-	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
-
-	//std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
-	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
-
-	UserMap map;
-	map.DeserializeContentHeader(mapStream);
-	map.DeserializeSandboxMap(mapStream);
-
-	mapStream.close();
-
-	std::string input = "-";
-
-	bool done = false;
-	while ( !done ) {
-
-		if ( input == "-" ) {
-
-			std::cout << "## 640 placements, 240 budgets ##\n"
-					  << "Type 'p' to view a placement, 'b' for a budget, 'q' to quit, 's' to save map: ";
-			std::cin >> input;
-
-		} else if ( input == "b" ) {
-			
-			std::cout << "Enter the budget index to go to (0 - 255): ";
-			std::cin >> input;
-
-			std::cout << "ITEM: " << _ITEMMAP[map.sandboxMap.budget[std::stoi(input)].tagIndex] << "\n";
-			map.sandboxMap.budget[std::stoi(input)].print();
-			std::cout << "\n";
-			input = "-";
-
-		} else if ( input == "p" ) {
-
-			std::cout << "Enter the placement index to go to (0 - 639): ";
-			std::cin >> input;
-
-			map.sandboxMap.placements[std::stoi(input)].print();
-			std::cout << "\n";
-			sf::Int32 budgetIndex = map.sandboxMap.placements[std::stoi(input)].budgetIndex;
-
-			std::cout << "Print this objects corresponding budget? (y/n): ";
-			std::cin >> input;
-
-			if ( input == "y" ) {
-
-				if ( budgetIndex >= 0 ) {
-					std::cout << "ITEM: " << _ITEMMAP[map.sandboxMap.budget[budgetIndex].tagIndex] << "\n";
-					map.sandboxMap.budget[budgetIndex].print();
-					std::cout << "\n";
-					input = "-";
-				} else {
-					std::cout << "Invalid budget.\n";
-					input = "-";
-				}
-
-			} else {
-
-				input = "-";
-
-			}
-
-		} else if ( input == "q" ) {
-
-			done = true;
-
-		} else if ( input == "s" ) {
-			
-			std::ofstream mapOutStream(mapPath, std::ios::binary | std::ios::out | std::ios::in);
-			map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
-			mapOutStream.close();
-
-			std::cout << "Map saved.\n";
-
-		}
-
-		std::cout << "\n ## ------------------------------------ ## \n\n";
-
-	}
-
-	
-	///////////////////////////////////////////////
-
-	/*
-	sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
-	sf::CircleShape shape(100.f);
-	shape.setFillColor(sf::Color::Green);
-
-	while (window.isOpen())
-	{
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-
-		window.clear();
-		window.draw(shape);
-		window.display();
-	}*/
 
 }
 
@@ -520,3 +427,112 @@ void dump_to_stdout(const char* pFilename)
 
 	}
 }
+
+
+///////////////////////////////////////////////////
+/*
+
+//dump_to_stdout("C:/Users/Hakeem/Documents/Repositories/Halo-Map-Generator/items.xml");
+
+std::string mapPath = "C:/Users/Hakeem/Downloads/maps/Beaver Creek/sandbox.map";
+//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
+
+//std::string mapPath = "D:/Misc/Halo Online 1.106708 cert_ms23/Halo Online/mods/maps/Beaver Creek/sandbox.map";
+std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
+
+UserMap map;
+map.DeserializeContentHeader(mapStream);
+map.DeserializeSandboxMap(mapStream);
+
+mapStream.close();
+
+std::string input = "-";
+
+bool done = false;
+while ( !done ) {
+
+	if ( input == "-" ) {
+
+		std::cout << "## 640 placements, 240 budgets ##\n"
+				  << "Type 'p' to view a placement, 'b' for a budget, 'q' to quit, 's' to save map: ";
+		std::cin >> input;
+
+	} else if ( input == "b" ) {
+
+		std::cout << "Enter the budget index to go to (0 - 255): ";
+		std::cin >> input;
+
+		std::cout << "ITEM: " << _ITEMMAP[map.sandboxMap.budget[std::stoi(input)].tagIndex] << "\n";
+		map.sandboxMap.budget[std::stoi(input)].print();
+		std::cout << "\n";
+		input = "-";
+
+	} else if ( input == "p" ) {
+
+		std::cout << "Enter the placement index to go to (0 - 639): ";
+		std::cin >> input;
+
+		map.sandboxMap.placements[std::stoi(input)].print();
+		std::cout << "\n";
+		sf::Int32 budgetIndex = map.sandboxMap.placements[std::stoi(input)].budgetIndex;
+
+		std::cout << "Print this objects corresponding budget? (y/n): ";
+		std::cin >> input;
+
+		if ( input == "y" ) {
+
+			if ( budgetIndex >= 0 ) {
+				std::cout << "ITEM: " << _ITEMMAP[map.sandboxMap.budget[budgetIndex].tagIndex] << "\n";
+				map.sandboxMap.budget[budgetIndex].print();
+				std::cout << "\n";
+				input = "-";
+			} else {
+				std::cout << "Invalid budget.\n";
+				input = "-";
+			}
+
+		} else {
+
+			input = "-";
+
+		}
+
+	} else if ( input == "q" ) {
+
+		done = true;
+
+	} else if ( input == "s" ) {
+
+		std::ofstream mapOutStream(mapPath, std::ios::binary | std::ios::out | std::ios::in);
+		map.SerializeSandboxMap(mapOutStream, map.sandboxMap);
+		mapOutStream.close();
+
+		std::cout << "Map saved.\n";
+
+	}
+
+	std::cout << "\n ## ------------------------------------ ## \n\n";
+
+}
+
+
+///////////////////////////////////////////////
+
+/*
+sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+sf::CircleShape shape(100.f);
+shape.setFillColor(sf::Color::Green);
+
+while (window.isOpen())
+{
+	sf::Event event;
+	while (window.pollEvent(event))
+	{
+		if (event.type == sf::Event::Closed)
+			window.close();
+	}
+
+	window.clear();
+	window.draw(shape);
+	window.display();
+}*/
