@@ -27,6 +27,7 @@ using namespace tinyxml2;
 void dump_to_stdout(const char*);
 bool placeItem(UserMap& map, sf::Uint32 tagIndex, sf::Vector3f position, sf::Vector3f upVector, sf::Vector3f rightVector);
 bool saveMap(UserMap& map, std::string path);
+void placeMaze(Cell maze[20][20], int size, UserMap& map, std::string path);
 
 class TestObj {
 public:
@@ -130,6 +131,7 @@ int main() {
 	//std::string mapPath = "C:/Users/Hakeem/Desktop/Maps/Edge_Empty_1Blk/sandbox.map";
 
 	std::string mapPath = "D:/Games/Halo Online/mods/maps/Edge_Empty/sandbox.map";
+	//std::string mapPath = "D:/Games/Halo Online/mods/maps/Edge_1_Cell/sandbox.map";
 	std::ifstream mapStream(mapPath, std::ios::binary | std::ios::in);
 
 	UserMap map;
@@ -190,6 +192,7 @@ int main() {
 	//map.sandboxMap.totalObjectCount += 2;
 	//map.sandboxMap.sceneryObjectCount += 2;
 	//saveMap(map, mapPath);
+	placeMaze(maze, 20, map, mapPath);
 
 	auto scrolledWindow = sfg::ScrolledWindow::Create();
 
@@ -215,24 +218,6 @@ int main() {
 	entryBox->SetRequisition(sf::Vector2f(80.f, 0.f));
 
 	mainWindow->Add(entryBox);
-
-	//auto table = sfg::Table::Create();
-	//table->SetRowSpacings(5.f);
-	//table->SetColumnSpacings(5.f);
-
-	/*
-	I need to understand how to resize the widget window here, and how to lock its position.
-	*/
-
-	/*
-	auto red_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
-	auto green_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
-	auto blue_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
-	auto angle_scale = sfg::Scale::Create(0.f, 360.f, 1.f, sfg::Scale::Orientation::HORIZONTAL);
-	auto auto_check = sfg::CheckButton::Create("Auto");
-
-	table->Attach(green_scale, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL | sfg::Table::EXPAND, sfg::Table::FILL | sfg::Table::EXPAND);
-	table->Attach(auto_check, sf::Rect<sf::Uint32>(2, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL);*/
 	
 	mainWindow->SetAllocation(sf::FloatRect(0.f, 0.f, renderWindow.getSize().x, renderWindow.getSize().y));
 
@@ -263,6 +248,69 @@ int main() {
 		
 	}
 
+
+}
+
+std::ostream& operator<<(std::ostream& os, const sf::Vector3f& v)
+{
+    os << '(' << v.x << ", " << v.y << ", " << v.z << ')';
+    return os;
+}
+
+void placeMaze(Cell maze[20][20], int size, UserMap& map, std::string path) {
+
+	sf::Vector3f position(0.0f, 0.0f, 0.0f);
+	sf::Vector3f nsUpVector(0.0f, 0.0f, 1.0f), nsRightVector(1.0f, 0.0f, 0.0f);
+	sf::Vector3f ewUpVector(0.0f, 0.0f, 1.0f), ewRightVector(0.0f, 1.0f, 0.0f);
+
+	/*sf::Vector3f temp = nsRightVector;
+	nsRightVector = ewRightVector;
+	ewRightVector = temp;*/
+
+	float baseX = -32.0f, baseY = -105.0f;
+	float currentX = baseX, currentY = baseY;
+	float blockSizeOffset = 0.9f;
+	for (int y = 0; y < size; ++ y) {
+		for (int x = 0; x < size; ++ x) {
+			
+			//if (x > 10) break;
+
+			std::cout << "\nat cell[" << x << "][" << y << "]\n";
+
+			currentX = baseX + ( (float) y * blockSizeOffset );
+			currentY = baseY + ( (float) x * blockSizeOffset );
+
+			if ( maze[x][y].getWall(Direction::North)->getActive() ) {
+				position = sf::Vector3f(currentX - 0.405f, currentY, 0.0f + 0.495f);
+				
+				std::cout << "placing a north wall at " << position << "\n";
+				placeItem(map, 328, position, nsUpVector, nsRightVector);
+			}
+
+			if ( maze[x][y].getWall(Direction::West)->getActive() ) {
+				position = sf::Vector3f(currentX, currentY - 0.405f, 0.0f + 0.495f);
+				
+
+				std::cout << "placing a west wall at " << position << "\n";
+				placeItem(map, 328, position, ewUpVector, ewRightVector);
+			}
+
+			// We must now place the east walls
+			if ( x == size - 1 ) {
+
+			}
+
+			// We must now place the south walls
+			if (y == size - 1) {
+
+			}
+
+		}
+		//break;
+
+	}
+
+	saveMap(map, path);
 
 }
 
@@ -428,6 +476,23 @@ void dump_to_stdout(const char* pFilename)
 	}
 }
 
+//auto table = sfg::Table::Create();
+//table->SetRowSpacings(5.f);
+//table->SetColumnSpacings(5.f);
+
+/*
+I need to understand how to resize the widget window here, and how to lock its position.
+*/
+
+/*
+auto red_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
+auto green_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
+auto blue_scale = sfg::Scale::Create(0.f, 1.f, .01f, sfg::Scale::Orientation::HORIZONTAL);
+auto angle_scale = sfg::Scale::Create(0.f, 360.f, 1.f, sfg::Scale::Orientation::HORIZONTAL);
+auto auto_check = sfg::CheckButton::Create("Auto");
+
+table->Attach(green_scale, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL | sfg::Table::EXPAND, sfg::Table::FILL | sfg::Table::EXPAND);
+table->Attach(auto_check, sf::Rect<sf::Uint32>(2, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL);*/
 
 ///////////////////////////////////////////////////
 /*
